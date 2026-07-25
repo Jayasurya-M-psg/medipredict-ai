@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: medipredict-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python app/ml/train_models.py
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGO_URI
+        value: ""          # Leave blank to use in-memory mock (or set MongoDB Atlas URI)
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: "*"
+    plan: free

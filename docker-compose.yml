@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: medipredict-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: medipredict-postgres
+    environment:
+      POSTGRES_USER: medipredict_user
+      POSTGRES_PASSWORD: medipredict_pass
+      POSTGRES_DB: medipredict_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medipredict_user -d medipredict_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: medipredict-backend
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB_NAME: medipredict
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: medipredict_user
+      POSTGRES_PASSWORD: medipredict_pass
+      POSTGRES_DB: medipredict_db
+      SECRET_KEY: medipredict-super-secret-key-2024-change-in-prod
+    depends_on:
+      mongo:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/saved_models:/app/saved_models
+
+  frontend:
+    build: ./frontend
+    container_name: medipredict-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+  pg_data:
