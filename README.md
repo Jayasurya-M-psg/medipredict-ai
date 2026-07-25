@@ -161,11 +161,11 @@ medipredict-ai/
 
 ## 👥 Team
 
-Solo project by **[Your Name]** — Final Year, B.Tech Computer Science
+Solo project by JAYASURYA M — Final Year, B.Tech INFORMATION TECHNOLOGY
 
 ## ⚠️ Disclaimer
 
-> This application is developed for **educational purposes only** as a final year project. It is NOT intended for medical diagnosis. Always consult a qualified healthcare professional for medical advice.
+> This application is developed for **educational purposes only** as a project. It is NOT intended for medical diagnosis. Always consult a qualified healthcare professional for medical advice.
 
 ---
 
