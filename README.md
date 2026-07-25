@@ -1,6 +1,6 @@
 # 🏥 MediPredict AI — AI-Powered Disease Prediction System
 
-> **Final Year Project** | Computer Science & IT | Healthcare Domain
+> PROJECT | INFORMATION TECHNOLOGY | Healthcare Domain
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688?logo=fastapi)](https://fastapi.tiangolo.com)
