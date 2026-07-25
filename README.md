@@ -161,7 +161,7 @@ medipredict-ai/
 
 ## 👥 Team
 
-Solo project by JAYASURYA M — Final Year, B.Tech INFORMATION TECHNOLOGY
+Solo project by JAYASURYA M — Final Year, B.Tech INFORMATION TECHNOLOGY,PSG COLLEGE OF TECHNOLOGY.COIMBATORE
 
 ## ⚠️ Disclaimer
 
