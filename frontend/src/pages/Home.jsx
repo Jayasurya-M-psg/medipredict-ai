@@ -84,7 +84,7 @@ export default function Home() {
                 <a href="https://github.com/Jayasurya-M-psg" className="dev-link" title="GitHub" target="_blank" rel="noreferrer">
                   <span>🐙</span> GitHub
                 </a>
-                <a href="https://linkedin.com/in/jayasurya-m" className="dev-link" title="LinkedIn" target="_blank" rel="noreferrer">
+                <a href="https://www.linkedin.com/in/jayasurya-m-766892345/" className="dev-link" title="LinkedIn" target="_blank" rel="noreferrer">
                   <span>💼</span> LinkedIn
                 </a>
               </div>
@@ -173,7 +173,7 @@ export default function Home() {
             <span className="footer-sep">|</span>
             <a href="mailto:jayasuryamurugesan29@gmail.com" className="footer-social-link">✉️ Email</a>
             <a href="https://github.com/Jayasurya-M-psg" className="footer-social-link" target="_blank" rel="noreferrer">🐙 GitHub</a>
-            <a href="https://linkedin.com/in/jayasurya-m" className="footer-social-link" target="_blank" rel="noreferrer">💼 LinkedIn</a>
+            <a href="https://www.linkedin.com/in/jayasurya-m-766892345/" className="footer-social-link" target="_blank" rel="noreferrer">💼 LinkedIn</a>
           </div>
           <p className="footer-disclaimer">⚠️ This tool is for educational purposes only. Always consult a qualified healthcare professional.</p>
         </div>
