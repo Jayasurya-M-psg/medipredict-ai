@@ -66,6 +66,29 @@ export default function Home() {
               <span>⚡ Instant Results</span>
               <span>🧠 3 ML Models</span>
             </div>
+
+            {/* Developer Card */}
+            <div className="developer-card">
+              <div className="dev-card-left">
+                <div className="dev-avatar">JM</div>
+                <div className="dev-info">
+                  <p className="dev-label">Developed by</p>
+                  <p className="dev-name">Jayasurya M</p>
+                  <p className="dev-college">🎓 PSG College of Technology</p>
+                </div>
+              </div>
+              <div className="dev-links">
+                <a href="mailto:jayasuryamurugesan29@gmail.com" className="dev-link" title="Email" target="_blank" rel="noreferrer">
+                  <span>✉️</span> Email
+                </a>
+                <a href="https://github.com/Jayasurya-M-psg" className="dev-link" title="GitHub" target="_blank" rel="noreferrer">
+                  <span>🐙</span> GitHub
+                </a>
+                <a href="https://linkedin.com/in/jayasurya-m" className="dev-link" title="LinkedIn" target="_blank" rel="noreferrer">
+                  <span>💼</span> LinkedIn
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -142,7 +165,16 @@ export default function Home() {
       {/* Footer */}
       <footer className="home-footer">
         <div className="page-container">
-          <p>⚕️ <strong>MediPredict AI</strong> — Final Year Project | Built with Python, FastAPI, React & Machine Learning</p>
+          <p>⚕️ <strong>MediPredict AI</strong> — Built with Python, FastAPI, React &amp; Machine Learning</p>
+          <div className="footer-dev-row">
+            <span>💻 Developed by <strong className="developer-name">Jayasurya M</strong></span>
+            <span className="footer-sep">|</span>
+            <span>🎓 PSG College of Technology</span>
+            <span className="footer-sep">|</span>
+            <a href="mailto:jayasuryamurugesan29@gmail.com" className="footer-social-link">✉️ Email</a>
+            <a href="https://github.com/Jayasurya-M-psg" className="footer-social-link" target="_blank" rel="noreferrer">🐙 GitHub</a>
+            <a href="https://linkedin.com/in/jayasurya-m" className="footer-social-link" target="_blank" rel="noreferrer">💼 LinkedIn</a>
+          </div>
           <p className="footer-disclaimer">⚠️ This tool is for educational purposes only. Always consult a qualified healthcare professional.</p>
         </div>
       </footer>
