@@ -70,11 +70,6 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="auth-divider"><span>Demo credentials</span></div>
-          <div className="demo-creds">
-            <code>admin@medipredict.ai / admin123</code>
-          </div>
-
           <p className="auth-switch">
             Don't have an account? <Link to="/register" id="switch-to-register">Create one free →</Link>
           </p>

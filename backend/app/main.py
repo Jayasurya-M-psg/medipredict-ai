@@ -23,47 +23,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     await connect_to_mongo()
-    await seed_demo_users()
     print(f"[START] {settings.APP_NAME} v{settings.APP_VERSION} is running!")
-
-async def seed_demo_users():
-    """Seed demo users so login always works even with in-memory DB."""
-    from app.database.mongo import get_mongo_db
-    from app.utils.auth import hash_password
-    from datetime import datetime
-    import uuid
-
-    db = get_mongo_db()
-    demo_users = [
-        {
-            "_id": "admin-demo-001",
-            "id": "admin-demo-001",
-            "full_name": "Admin User",
-            "email": "admin@medipredict.ai",
-            "hashed_password": hash_password("admin123"),
-            "role": "admin",
-            "is_active": True,
-            "created_at": datetime.utcnow(),
-        },
-        {
-            "_id": "jayasurya-001",
-            "id": "jayasurya-001",
-            "full_name": "Jayasurya M",
-            "email": "jayasuryamurugesan29@gmail.com",
-            "hashed_password": hash_password("jayas123"),
-            "role": "admin",
-            "is_active": True,
-            "created_at": datetime.utcnow(),
-        },
-    ]
-    for user in demo_users:
-        try:
-            existing = await db.users.find_one({"email": user["email"]})
-            if not existing:
-                await db.users.insert_one(user)
-                print(f"[SEED] Created user: {user['email']}")
-        except Exception:
-            pass  # Already exists — skip
 
 @app.on_event("shutdown")
 async def shutdown():
