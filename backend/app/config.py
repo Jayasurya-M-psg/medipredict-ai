@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 from typing import List
 
 class Settings(BaseSettings):
-    APP_NAME: str = "MediPredict AI"
+    APP_NAME: str = "MediPredict"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     SECRET_KEY: str = "medipredict-secret-key-change-in-production-min-32-chars"

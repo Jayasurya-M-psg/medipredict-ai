@@ -26,7 +26,7 @@ export default function Login() {
       </div>
       <div className="auth-container animate-fade-in-up">
         <div className="auth-card">
-          <div className="auth-logo">⚕️ MediPredict AI</div>
+          <div className="auth-logo">⚕️ MediPredict</div>
           <h1>Welcome back</h1>
           <p className="auth-subtitle">Sign in to your health dashboard</p>
 

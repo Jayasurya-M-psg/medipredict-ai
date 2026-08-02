@@ -1,6 +1,6 @@
 {
   "appId": "com.medipredict.ai",
-  "appName": "MediPredict AI",
+  "appName": "MediPredict",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

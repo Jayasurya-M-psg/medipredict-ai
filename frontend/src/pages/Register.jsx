@@ -41,7 +41,7 @@ export default function Register() {
       </div>
       <div className="auth-container animate-fade-in-up">
         <div className="auth-card">
-          <div className="auth-logo">⚕️ MediPredict AI</div>
+          <div className="auth-logo">⚕️ MediPredict</div>
           <h1>Create Account</h1>
           <p className="auth-subtitle">Start your AI health journey today — free forever</p>
 

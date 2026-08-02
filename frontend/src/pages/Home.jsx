@@ -46,7 +46,7 @@ export default function Home() {
               <span className="gradient-text">Artificial Intelligence</span>
             </h1>
             <p className="hero-desc">
-              MediPredict AI uses advanced Machine Learning to analyze your symptoms and assess health risks. 
+              MediPredict uses advanced Machine Learning to analyze your symptoms and assess health risks. 
               Get instant predictions for 41 diseases — no waiting, no guessing.
             </p>
             <div className="hero-actions">
@@ -165,7 +165,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="home-footer">
         <div className="page-container">
-          <p>⚕️ <strong>MediPredict AI</strong> — Built with Python, FastAPI, React &amp; Machine Learning</p>
+          <p>⚕️ <strong>MediPredict</strong> — Built with Python, FastAPI, React &amp; Machine Learning</p>
           <div className="footer-dev-row">
             <span>💻 Developed by <strong className="developer-name">Jayasurya M</strong></span>
             <span className="footer-sep">|</span>
