@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
     # MongoDB
-    MONGO_URI: str = "mongodb://localhost:27017"
+    MONGO_URI: str = "mongodb+srv://jayasuryamurugesan29_db_user:jsurya2912@cluster0.bbztikn.mongodb.net/medipredict"
     MONGO_DB_NAME: str = "medipredict"
 
     # CORS — "*" allows any frontend (Vercel, phones, etc.)
