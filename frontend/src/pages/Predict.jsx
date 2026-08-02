@@ -57,7 +57,7 @@ function DiseaseTab() {
             id="symptom-search"
           />
           <div className="symptom-grid">
-            {filtered.slice(0, 80).map(s => (
+            {filtered.map(s => (
               <button
                 key={s}
                 id={`symptom-${s}`}
