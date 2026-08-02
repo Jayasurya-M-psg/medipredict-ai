@@ -120,15 +120,187 @@ function DiseaseTab() {
                     <span>👨‍⚕️ {pred.specialist}</span>
                   </div>
                   {i === 0 && pred.description && (
-                    <p className="result-desc">{pred.description}</p>
+                    <div className="result-content">
+                      <p className="result-desc">{pred.description}</p>
+                      {pred.recommendations && (
+                        <div className="result-recommendations">
+                          <h4>Recommended Steps:</h4>
+                          <ul>{pred.recommendations.map((rec, j) => <li key={j}>{rec}</li>)}</ul>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
+
+              {/* Disease Guide for Top Match */}
+              <DiseaseGuideCard disease={result.predictions[0]?.disease} />
+
               <div className="alert alert-info" style={{ marginTop: 16 }}>
                 ⚠️ This is an AI prediction for educational purposes only. Please consult a healthcare professional.
               </div>
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Disease Guide Data ───────────────────────────────────────────────────── */
+const DISEASE_GUIDE = {
+  'GERD': {
+    first: ['Avoid eating for 2–3 hours before lying down', 'Sit upright and sip warm water slowly', 'Take an antacid (e.g., Gelusil, Digene) if available'],
+    recommendations: ['Eat smaller meals more frequently', 'Avoid spicy, oily, and acidic foods', 'Elevate head of bed by 6–8 inches', 'Avoid coffee, alcohol, and carbonated drinks'],
+    avoid: ['Lying down immediately after meals', 'Tight clothing around waist', 'Smoking and alcohol'],
+    seeDoctor: 'If symptoms persist more than 2 weeks or you have difficulty swallowing'
+  },
+  'Diabetes': {
+    first: ['Check blood sugar if glucometer is available', 'Drink water (not sugary drinks)', 'If dizzy or weak, eat a small piece of sugar immediately'],
+    recommendations: ['Follow a low-sugar, low-carb diet', 'Exercise 30 minutes daily (walking is fine)', 'Monitor blood sugar regularly', 'Take prescribed medications consistently'],
+    avoid: ['Sugary foods, white rice, white bread', 'Skipping meals', 'Sedentary lifestyle'],
+    seeDoctor: 'Immediately if blood sugar is very high/low, or you feel confused or unconscious'
+  },
+  'Hypertension': {
+    first: ['Sit calmly and rest for 10 minutes', 'Avoid caffeine immediately', 'Take prescribed BP medication if available'],
+    recommendations: ['Reduce salt intake to less than 5g/day', 'Exercise regularly — 30 min/day', 'Practice meditation or deep breathing daily', 'Monitor BP every morning'],
+    avoid: ['Salty foods, pickles, processed food', 'Stress, smoking, and alcohol', 'Caffeine in large amounts'],
+    seeDoctor: 'If BP reading is above 180/120 or you have headache, chest pain, or vision changes'
+  },
+  'Common Cold': {
+    first: ['Rest completely and drink warm water or soup', 'Take paracetamol for fever or body ache', 'Gargle with warm salt water for throat pain'],
+    recommendations: ['Drink 8–10 glasses of warm fluids daily', 'Take steam inhalation twice daily', 'Eat Vitamin C rich foods (orange, lemon, amla)', 'Get 8+ hours of sleep'],
+    avoid: ['Cold drinks and ice cream', 'Going out in cold or rainy weather', 'Touching face with unwashed hands'],
+    seeDoctor: 'If fever exceeds 103°F, breathing is difficult, or symptoms worsen after 7 days'
+  },
+  'Pneumonia': {
+    first: ['Seek medical attention immediately — do not delay', 'Rest completely and avoid all exertion', 'Note breathing rate and temperature'],
+    recommendations: ['Complete the full course of prescribed antibiotics', 'Stay well hydrated', 'Do breathing exercises as advised by doctor', 'Rest at home for full recovery'],
+    avoid: ['Smoking and secondhand smoke', 'Cold environments', 'Stopping antibiotics midway'],
+    seeDoctor: '🚨 IMMEDIATELY — Pneumonia is serious. Go to hospital if breathing is difficult'
+  },
+  'Tuberculosis': {
+    first: ['Cover mouth when coughing (use tissue, then dispose)', 'Temporarily isolate from others', 'Go to hospital today for sputum test'],
+    recommendations: ['Take the full 6-month DOTS treatment — never skip', 'Eat a nutritious, protein-rich diet', 'Sleep in a well-ventilated room', 'Inform close contacts to get tested'],
+    avoid: ['Stopping TB medication before completion', 'Sharing utensils or close contact with others', 'Alcohol (reduces medication effectiveness)'],
+    seeDoctor: 'Today — TB requires professional diagnosis and a structured treatment plan'
+  },
+  'Malaria': {
+    first: ['Go to hospital immediately for blood smear test', 'Take paracetamol ONLY for fever (not aspirin)', 'Stay hydrated with ORS or water'],
+    recommendations: ['Complete the full course of anti-malarial drugs', 'Rest completely at home', 'Use mosquito nets and insect repellent', 'Stay in screened or air-conditioned rooms'],
+    avoid: ['Aspirin or ibuprofen (can cause dangerous bleeding)', 'Skipping any anti-malarial doses', 'Outdoor activity at dusk or dawn'],
+    seeDoctor: '🚨 IMMEDIATELY — Malaria can become life-threatening within hours'
+  },
+  'Dengue': {
+    first: ['Go to hospital for platelet count test immediately', 'Drink ORS, coconut water, or papaya leaf juice', 'Take paracetamol ONLY for fever — NO ibuprofen or aspirin'],
+    recommendations: ['Rest completely — avoid all physical exertion', 'Monitor platelet count daily', 'Drink at least 3 litres of fluids daily', 'Eat soft, easily digestible foods'],
+    avoid: ['Ibuprofen, aspirin, or any blood thinners', 'Mosquito bites — wear full-cover clothing', 'Physical activity of any kind'],
+    seeDoctor: 'Immediately — hospitalisation needed if platelets drop below 1 lakh'
+  },
+  'Typhoid': {
+    first: ['Go to hospital for Widal test or blood culture today', 'Drink boiled water only — no raw food', 'Take paracetamol for fever control'],
+    recommendations: ['Take prescribed antibiotics for the full duration', 'Eat soft bland diet: khichdi, dal, soup, bread', 'Strict hand hygiene before eating', 'Rest completely for at least 2 weeks'],
+    avoid: ['Raw food, street food, unboiled water', 'Sharing food or utensils', 'Stopping antibiotics before completing the course'],
+    seeDoctor: 'Today — blood tests needed to confirm and start antibiotics quickly'
+  },
+  'Jaundice': {
+    first: ['Stop all alcohol consumption immediately', 'Increase fluid intake (water, coconut water)', 'Avoid all fatty or heavy food right now'],
+    recommendations: ['Eat a light diet: fruits, boiled vegetables, low-fat food', 'Rest completely', 'Drink plenty of fluids throughout the day', 'Take liver supplements as prescribed by doctor'],
+    avoid: ['Alcohol completely — even small amounts damage liver', 'Oily, spicy, or fried foods', 'Self-medication — many drugs are toxic to a stressed liver'],
+    seeDoctor: 'Today — jaundice indicates liver trouble and needs blood tests (bilirubin, LFT)'
+  },
+  'Chicken Pox': {
+    first: ['Isolate immediately — highly contagious for 5–7 days', 'Apply calamine lotion on blisters to reduce itching', 'Take paracetamol for fever — NO aspirin'],
+    recommendations: ['Cut nails short to prevent scratching and scarring', 'Wear loose, soft cotton clothing', 'Take antihistamines for itching as prescribed', 'Eat soft cooling foods'],
+    avoid: ['Scratching blisters — causes infection and permanent scars', 'Aspirin (causes dangerous Reye syndrome in children)', 'Contact with pregnant women, newborns, or elderly'],
+    seeDoctor: 'If blisters are infected (red, warm, pus), fever is very high, or breathing is affected'
+  },
+  'Allergy': {
+    first: ['Remove yourself from the allergen source immediately', 'Take an antihistamine (e.g., Cetirizine 10mg)', 'Apply cold compress to itchy skin areas'],
+    recommendations: ['Identify and strictly avoid your specific triggers', 'Keep antihistamines with you at all times', 'Consider allergy testing to identify exact triggers', 'Wear a medical alert bracelet for severe allergies'],
+    avoid: ['Known allergens — food, dust, pollen, animals, etc.', 'Rubbing or scratching allergic skin areas', 'Ignoring severe reactions (anaphylaxis is life-threatening)'],
+    seeDoctor: '🚨 IMMEDIATELY if throat swells, difficulty breathing, or swallowing (anaphylaxis emergency)'
+  },
+  'Migraine': {
+    first: ['Move to a dark, quiet room immediately', 'Apply cold compress to forehead and neck', 'Take prescribed migraine medication early — earlier is more effective'],
+    recommendations: ['Maintain a regular sleep and meal schedule', 'Stay well hydrated throughout the day', 'Keep a migraine diary to identify personal triggers', 'Practice stress management (yoga, meditation)'],
+    avoid: ['Bright lights and loud sounds during attack', 'Skipping meals or fasting', 'Alcohol, caffeine, processed cheese, and MSG', 'Irregular sleep patterns'],
+    seeDoctor: 'If this is the worst headache of your life, starts suddenly, or comes with fever/stiff neck'
+  },
+  'Arthritis': {
+    first: ['Rest the painful joint completely', 'Apply warm compress for stiffness or cold pack for swelling', 'Take prescribed pain relief medication with food'],
+    recommendations: ['Do low-impact exercises: swimming, walking, yoga', 'Maintain a healthy body weight to reduce joint stress', 'Use warm water soaks in the morning for stiffness', 'Eat anti-inflammatory foods (fish, walnuts, turmeric)'],
+    avoid: ['High-impact activities like running or jumping on hard surfaces', 'Prolonged sitting or standing in one position', 'Smoking — worsens inflammation', 'Processed, sugary, and fried foods'],
+    seeDoctor: 'If joints are severely swollen, very painful, or morning stiffness lasts over 1 hour'
+  },
+  'Urinary Tract Infection': {
+    first: ['Drink 2–3 large glasses of water immediately', 'Urinate frequently — never hold it in', 'Start prescribed antibiotics if already available'],
+    recommendations: ['Drink 8–10 glasses of water daily to flush bacteria', 'Urinate after sexual activity', 'Wipe front to back (for women)', 'Take the full antibiotic course without stopping'],
+    avoid: ['Holding urine for long periods', 'Perfumed soaps or sprays in the genital area', 'Tight synthetic underwear', 'Caffeine and alcohol which irritate the bladder'],
+    seeDoctor: 'Today — UTI spreads to kidneys if untreated. Go urgently if you have back pain or high fever'
+  },
+  'Heart Attack': {
+    first: ['📞 CALL 108 / 112 IMMEDIATELY', 'Chew one aspirin (325mg) if not allergic and available', 'Sit or lie in comfortable position — do NOT walk around', 'Loosen all tight clothing around chest and neck'],
+    recommendations: ['After treatment: follow cardiac rehabilitation program fully', 'Take all prescribed cardiac medications every day', 'Follow a heart-healthy diet: low fat, low salt, high fiber', 'Light exercise only as specifically advised by cardiologist'],
+    avoid: ['Any physical exertion or stress', 'Smoking and alcohol completely', 'Salty, fatty, and processed foods', 'Skipping any cardiac medications'],
+    seeDoctor: '🚨 CALL 108 NOW — Heart attack is a life-threatening emergency. Every minute counts'
+  },
+  'Gastroenteritis': {
+    first: ['Start ORS (Oral Rehydration Solution) immediately in small sips', 'Rest completely and avoid any food for 2 hours if vomiting', 'After 2 hours, try BRAT diet: Banana, Rice, Apple, Toast'],
+    recommendations: ['Drink small sips of ORS or electrolyte solution frequently', 'Gradually reintroduce bland, easily digestible foods', 'Wash hands thoroughly before eating and after using toilet', 'Avoid dairy products for 2–3 days'],
+    avoid: ['Spicy, oily, and dairy foods during recovery', 'Raw food and street food', 'Caffeine and alcohol', 'Anti-diarrhea medicine in first 24 hours (body is expelling germs)'],
+    seeDoctor: 'If vomiting or diarrhea persists more than 2 days, blood in stool, or signs of dehydration'
+  },
+  'Peptic Ulcer Disease': {
+    first: ['Eat something mild immediately: banana, plain rice, or bread', 'Take an antacid if available', 'Avoid ALL painkillers — ibuprofen and aspirin severely worsen ulcers'],
+    recommendations: ['Eat small, frequent meals every 3–4 hours — never skip', 'Take prescribed PPI medication (Omeprazole) before meals', 'Get tested and treated for H. pylori infection', 'Manage stress through relaxation techniques'],
+    avoid: ['NSAIDs, aspirin, and ibuprofen completely', 'Alcohol and smoking', 'Spicy food, coffee, tea, and citrus fruits', 'Skipping or delaying meals'],
+    seeDoctor: '🚨 Immediately if you see blood in vomit or black/tarry stool — this is an emergency'
+  },
+}
+
+const DEFAULT_GUIDE = {
+  first: ['Rest and avoid any strenuous activity', 'Stay hydrated — drink plenty of clean water', 'Monitor your symptoms and note any changes or worsening'],
+  recommendations: ['Consult a qualified doctor for proper diagnosis and treatment', 'Take all prescribed medications as directed', 'Maintain a balanced diet and get adequate sleep', 'Avoid self-medication without medical supervision'],
+  avoid: ['Ignoring worsening symptoms', 'Self-diagnosing without professional medical confirmation', 'Stopping medications before completing the course'],
+  seeDoctor: 'Schedule a doctor appointment as soon as possible for accurate diagnosis and proper treatment'
+}
+
+function DiseaseGuideCard({ disease }) {
+  const guide = DISEASE_GUIDE[disease] || DEFAULT_GUIDE
+  return (
+    <div className="disease-guide-card animate-fade-in-up">
+      <div className="guide-header">
+        <span className="guide-icon">📋</span>
+        <h4>What To Do — <span className="guide-disease-name">{disease}</span></h4>
+      </div>
+
+      <div className="guide-section guide-first">
+        <div className="guide-section-title">🚨 Do This First (Immediate Steps)</div>
+        <ul className="guide-list">
+          {guide.first.map((item, i) => <li key={i}><span className="guide-num">{i+1}</span>{item}</li>)}
+        </ul>
+      </div>
+
+      <div className="guide-section guide-rec">
+        <div className="guide-section-title">✅ Recommendations</div>
+        <ul className="guide-list">
+          {guide.recommendations.map((item, i) => <li key={i}><span className="guide-dot">•</span>{item}</li>)}
+        </ul>
+      </div>
+
+      <div className="guide-section guide-avoid">
+        <div className="guide-section-title">🚫 What To Avoid</div>
+        <ul className="guide-list">
+          {guide.avoid.map((item, i) => <li key={i}><span className="guide-cross">✗</span>{item}</li>)}
+        </ul>
+      </div>
+
+      <div className="guide-doctor">
+        <span className="guide-doctor-icon">👨‍⚕️</span>
+        <div>
+          <div className="guide-doctor-label">When To See A Doctor</div>
+          <div className="guide-doctor-text">{guide.seeDoctor}</div>
         </div>
       </div>
     </div>

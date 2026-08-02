@@ -179,3 +179,89 @@ select.form-input { appearance: auto; cursor: pointer; }
   .predict-content { padding: 20px; }
   .symptom-grid { max-height: 250px; }
 }
+
+/* ── Disease Guide Card ─────────────────────────────────────────────────── */
+.disease-guide-card {
+  margin-top: 20px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(99,102,241,0.25);
+  background: rgba(15,23,42,0.6);
+}
+.guide-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(6,182,212,0.15));
+  border-bottom: 1px solid rgba(99,102,241,0.2);
+}
+.guide-icon { font-size: 1.3rem; }
+.guide-header h4 { margin: 0; font-size: 1rem; font-weight: 700; color: #e2e8f0; }
+.guide-disease-name { color: #818cf8; font-style: italic; }
+
+.guide-section { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.guide-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.guide-first .guide-section-title { color: #f97316; }
+.guide-rec   .guide-section-title { color: #10b981; }
+.guide-avoid .guide-section-title { color: #ef4444; }
+
+.guide-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.guide-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+.guide-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  background: rgba(249,115,22,0.2);
+  color: #f97316;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.guide-dot {
+  color: #10b981;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  min-width: 16px;
+}
+.guide-cross {
+  color: #ef4444;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+  min-width: 16px;
+}
+
+.guide-doctor {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: rgba(99,102,241,0.08);
+}
+.guide-doctor-icon { font-size: 1.5rem; margin-top: 2px; }
+.guide-doctor-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #818cf8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.guide-doctor-text { font-size: 0.875rem; color: #e2e8f0; line-height: 1.5; }
