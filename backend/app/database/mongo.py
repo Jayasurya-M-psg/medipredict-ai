@@ -1,7 +1,6 @@
 """
-MongoDB connection with async mongomock fallback.
-Uses real MongoDB if running, otherwise falls back to
-mongomock.motor_asyncio (fully async-compatible in-memory DB).
+MongoDB connection — connects to MongoDB Atlas (persistent cloud DB).
+Falls back to in-memory mock only if Atlas URI is not configured.
 """
 import asyncio
 from app.config import settings
@@ -14,34 +13,67 @@ class MongoDB:
 mongo = MongoDB()
 
 async def connect_to_mongo():
-    # ── Try real MongoDB first ──────────────────────────────────────
+    # ── Try real MongoDB Atlas with generous timeout ────────────────
     try:
         from motor.motor_asyncio import AsyncIOMotorClient
-        client = AsyncIOMotorClient(settings.MONGO_URI, serverSelectionTimeoutMS=2000)
-        await asyncio.wait_for(client.server_info(), timeout=3)
-        mongo.client = client
-        mongo.db     = mongo.client[settings.MONGO_DB_NAME]
+        print(f"[INFO] Connecting to MongoDB Atlas...")
+        # Increase timeout to 15 seconds for Atlas cold-start
+        client = AsyncIOMotorClient(
+            settings.MONGO_URI,
+            serverSelectionTimeoutMS=15000,
+            connectTimeoutMS=15000,
+            socketTimeoutMS=30000,
+        )
+        # Ping to verify connection
+        await asyncio.wait_for(client.admin.command('ping'), timeout=15)
+        mongo.client     = client
+        mongo.db         = mongo.client[settings.MONGO_DB_NAME]
         mongo.using_mock = False
         await mongo.db.users.create_index("email", unique=True)
-        print(f"[OK] Connected to real MongoDB: {settings.MONGO_DB_NAME}")
+        print(f"[OK] Connected to MongoDB Atlas: {settings.MONGO_DB_NAME}")
+        return
 
-    # ── Fall back to async mongomock ────────────────────────────────
-    except Exception:
-        print("[WARN] Real MongoDB not found — using async in-memory mock")
-        print("[TIP ] Install MongoDB Community for persistent data.")
+    except Exception as e:
+        print(f"[ERROR] MongoDB Atlas connection failed: {e}")
+
+    # ── Only fall back to mock if MONGO_URI is local/default ───────
+    is_local = "localhost" in settings.MONGO_URI or "127.0.0.1" in settings.MONGO_URI
+    if not is_local:
+        # Atlas URI configured but failed — retry once more with longer wait
+        print("[WARN] Retrying Atlas connection in 5 seconds...")
+        await asyncio.sleep(5)
         try:
-            from mongomock.motor_asyncio import AsyncIOMotorClient as MockClient
-            mongo.client     = MockClient()
+            from motor.motor_asyncio import AsyncIOMotorClient
+            client = AsyncIOMotorClient(
+                settings.MONGO_URI,
+                serverSelectionTimeoutMS=20000,
+                connectTimeoutMS=20000,
+            )
+            await asyncio.wait_for(client.admin.command('ping'), timeout=20)
+            mongo.client     = client
             mongo.db         = mongo.client[settings.MONGO_DB_NAME]
-            mongo.using_mock = True
-            print("[OK] mongomock async (in-memory) database is ready")
-        except ImportError:
-            # Last resort: plain mongomock with sync wrapper shim
-            import mongomock
-            mongo.client     = mongomock.MongoClient()
-            mongo.db         = _SyncToAsyncDB(mongo.client[settings.MONGO_DB_NAME])
-            mongo.using_mock = True
-            print("[OK] mongomock sync shim database is ready")
+            mongo.using_mock = False
+            await mongo.db.users.create_index("email", unique=True)
+            print(f"[OK] Connected to MongoDB Atlas on retry: {settings.MONGO_DB_NAME}")
+            return
+        except Exception as e2:
+            print(f"[ERROR] Atlas retry also failed: {e2}")
+            print("[CRITICAL] All user data will be LOST on restart. Check MONGO_URI.")
+
+    # ── Fallback to in-memory (only for local dev) ──────────────────
+    print("[WARN] Falling back to in-memory mock DB (data not persistent)")
+    try:
+        from mongomock.motor_asyncio import AsyncIOMotorClient as MockClient
+        mongo.client     = MockClient()
+        mongo.db         = mongo.client[settings.MONGO_DB_NAME]
+        mongo.using_mock = True
+        print("[OK] In-memory mock DB ready (local dev only)")
+    except ImportError:
+        import mongomock
+        mongo.client     = mongomock.MongoClient()
+        mongo.db         = _SyncToAsyncDB(mongo.client[settings.MONGO_DB_NAME])
+        mongo.using_mock = True
+        print("[OK] Sync mock DB shim ready (local dev only)")
 
 async def close_mongo_connection():
     if mongo.client and not mongo.using_mock:
