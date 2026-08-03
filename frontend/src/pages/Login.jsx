@@ -15,7 +15,18 @@ export default function Login() {
     setError('')
     const res = await login(form.email, form.password)
     if (res.success) navigate('/dashboard')
-    else setError(res.error)
+    else {
+      const msg = res.error || ''
+      if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('timeout') || msg === 'Login failed') {
+        setError('⏳ Server is waking up (free tier). Please wait 30 seconds and try again.')
+      } else if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('password') || msg.toLowerCase().includes('incorrect')) {
+        setError('❌ Wrong email or password. Please check and try again.')
+      } else if (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('exist')) {
+        setError('❌ No account found. Please register first.')
+      } else {
+        setError(msg || 'Login failed. Please try again.')
+      }
+    }
   }
 
   return (

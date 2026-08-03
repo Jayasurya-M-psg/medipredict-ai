@@ -19,7 +19,12 @@ export function AuthProvider({ children }) {
       setUser(userData)
       return { success: true }
     } catch (err) {
-      return { success: false, error: err.response?.data?.detail || 'Login failed' }
+      if (!err.response) {
+        // Network error or timeout — Render cold start
+        return { success: false, error: 'timeout' }
+      }
+      const detail = err.response?.data?.detail || ''
+      return { success: false, error: detail || 'Invalid email or password' }
     } finally {
       setLoading(false)
     }
