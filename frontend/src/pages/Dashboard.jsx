@@ -15,6 +15,7 @@ function formatDate(iso) {
 }
 
 function PredictionCard({ record, index }) {
+  const [expanded, setExpanded] = useState(false)
   const type = record.prediction_type
   const icons = { disease: '🔬', diabetes: '💉', heart: '❤️' }
   const labels = { disease: 'Disease Check', diabetes: 'Diabetes Risk', heart: 'Heart Risk' }
@@ -30,16 +31,24 @@ function PredictionCard({ record, index }) {
   }
 
   return (
-    <div className="history-card animate-fade-in-up" style={{ animationDelay: `${index * 0.05}s` }} id={`history-${index}`}>
-      <div className="hc-icon">{icons[type]}</div>
-      <div className="hc-info">
-        <div className="hc-type">{labels[type]}</div>
-        <div className="hc-summary">{summary}</div>
-        {riskLevel && (
-          <span className="hc-risk" style={{ color: riskColor[riskLevel] }}>{riskLevel} Risk</span>
-        )}
+    <div className={`history-card animate-fade-in-up ${expanded ? 'expanded' : ''}`} style={{ animationDelay: `${index * 0.05}s` }} id={`history-${index}`} onClick={() => setExpanded(!expanded)}>
+      <div className="hc-row">
+        <div className="hc-icon">{icons[type]}</div>
+        <div className="hc-info">
+          <div className="hc-type">{labels[type]}</div>
+          <div className="hc-summary">{summary}</div>
+          {riskLevel && (
+            <span className="hc-risk" style={{ color: riskColor[riskLevel] }}>{riskLevel} Risk</span>
+          )}
+        </div>
+        <div className="hc-date">{formatDate(record.created_at)}</div>
       </div>
-      <div className="hc-date">{formatDate(record.created_at)}</div>
+      {expanded && (
+        <div className="hc-details">
+          <div className="divider"></div>
+          <pre>{JSON.stringify(record.result, null, 2)}</pre>
+        </div>
+      )}
     </div>
   )
 }
