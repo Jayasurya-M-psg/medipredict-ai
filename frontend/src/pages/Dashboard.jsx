@@ -31,22 +31,76 @@ function PredictionCard({ record, index }) {
   }
 
   return (
-    <div className={`history-card animate-fade-in-up ${expanded ? 'expanded' : ''}`} style={{ animationDelay: `${index * 0.05}s` }} id={`history-${index}`} onClick={() => setExpanded(!expanded)}>
+    <div className={`history-card animate-fade-in-up ${expanded ? 'hc-expanded' : ''}`} style={{ animationDelay: `${index * 0.05}s` }} id={`history-${index}`} onClick={() => setExpanded(!expanded)}>
       <div className="hc-row">
         <div className="hc-icon">{icons[type]}</div>
         <div className="hc-info">
           <div className="hc-type">{labels[type]}</div>
-          <div className="hc-summary">{summary}</div>
-          {riskLevel && (
-            <span className="hc-risk" style={{ color: riskColor[riskLevel] }}>{riskLevel} Risk</span>
-          )}
+          <div className="hc-summary-text">{summary}</div>
+          {riskLevel && <span className="hc-risk" style={{ color: riskColor[riskLevel] }}>{riskLevel} Risk</span>}
         </div>
-        <div className="hc-date">{formatDate(record.created_at)}</div>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4, flexShrink:0 }}>
+          <div className="hc-date">{formatDate(record.created_at)}</div>
+          <div className="hc-expand-lbl">{expanded ? '▲ Hide' : '▼ Details'}</div>
+        </div>
       </div>
+
       {expanded && (
-        <div className="hc-details">
-          <div className="divider"></div>
-          <pre>{JSON.stringify(record.result, null, 2)}</pre>
+        <div className="hc-details" onClick={e => e.stopPropagation()}>
+          <div className="hc-divider" />
+
+          {type === 'disease' && record.result?.predictions && (
+            <>
+              <div className="hc-section-title">🎯 Prediction Results</div>
+              {record.result.predictions.map((pred, i) => (
+                <div key={i} className="hc-pred-row">
+                  <div className="hc-pred-header">
+                    <span className="hc-pred-name">{pred.disease}</span>
+                    {i === 0 && <span className="hc-top-badge">Top Match</span>}
+                    <span className="hc-pred-conf" style={{ color: pred.confidence >= 50 ? '#10b981' : pred.confidence >= 30 ? '#f59e0b' : '#94a3b8' }}>
+                      {pred.confidence}%
+                    </span>
+                  </div>
+                  <div className="hc-bar-outer">
+                    <div className="hc-bar-inner" style={{ width: `${Math.min(pred.confidence * 2, 100)}%`, background: pred.confidence >= 50 ? '#10b981' : pred.confidence >= 30 ? '#f59e0b' : '#6366f1' }} />
+                  </div>
+                  <div className="hc-specialist">👨‍⚕️ {pred.specialist}</div>
+                </div>
+              ))}
+              {record.result?.matched_symptoms?.length > 0 && (
+                <>
+                  <div className="hc-section-title" style={{ marginTop:14 }}>🩺 Symptoms Checked</div>
+                  <div className="hc-chips">
+                    {record.result.matched_symptoms.map((s, i) => (
+                      <span key={i} className="hc-chip">{s.replace(/_/g,' ')}</span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {(type === 'diabetes' || type === 'heart') && record.result && (
+            <>
+              <div className="hc-section-title">{type === 'diabetes' ? '💉 Diabetes' : '❤️ Heart'} Risk Details</div>
+              <div className="hc-risk-row">
+                <span className="hc-risk-score" style={{ color: riskColor[record.result.risk_level] || '#94a3b8' }}>{record.result.risk_score}%</span>
+                <span className="hc-risk-pill" style={{ color: riskColor[record.result.risk_level], borderColor:`${riskColor[record.result.risk_level]}50`, background:`${riskColor[record.result.risk_level]}15` }}>{record.result.risk_level} Risk</span>
+              </div>
+              {record.result.risk_factors?.length > 0 && (
+                <>{<div className="hc-section-title" style={{marginTop:10}}>⚠️ Risk Factors</div>}
+                  {record.result.risk_factors.map((rf,i)=><div key={i} className="hc-factor">🔴 {rf}</div>)}</>
+              )}
+              {record.result.recommendations?.length > 0 && (
+                <>{<div className="hc-section-title" style={{marginTop:10}}>✅ Recommendations</div>}
+                  {record.result.recommendations.map((r,i)=><div key={i} className="hc-rec">• {r}</div>)}</>
+              )}
+            </>
+          )}
+
+          <div className="hc-footer">
+            <Link to="/predict" className="hc-new-btn" onClick={e=>e.stopPropagation()}>🔄 Run New Prediction</Link>
+          </div>
         </div>
       )}
     </div>
