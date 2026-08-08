@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { healthAPI } from '../services/api'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
+import { generateHealthReport } from '../utils/pdfReport'
 import './Dashboard.css'
 
 const PIE_COLORS = ['#6366f1', '#06b6d4', '#ef4444']
@@ -136,7 +137,10 @@ export default function Dashboard() {
             <h1>Health Dashboard</h1>
             <p>Welcome back, <span className="user-highlight">{user?.full_name?.split(' ')[0]}</span> 👋</p>
           </div>
-          <Link to="/predict" className="btn btn-primary" id="new-prediction-btn">+ New Prediction</Link>
+          <div style={{display:'flex',gap:10}}>
+            <button className="btn btn-secondary" onClick={() => generateHealthReport(user, history, stats)} id="download-pdf-btn">📄 Download Report</button>
+            <Link to="/predict" className="btn btn-primary" id="new-prediction-btn">+ New Prediction</Link>
+          </div>
         </div>
 
         {/* Stats */}

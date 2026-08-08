@@ -9,6 +9,8 @@ import Predict from './pages/Predict'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import Admin from './pages/Admin'
+import BMI from './pages/BMI'
+import Hospitals from './pages/Hospitals'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -34,6 +36,8 @@ function AppContent() {
         <Route path="/predict"   element={<PrivateRoute><Predict /></PrivateRoute>} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/profile"   element={<PrivateRoute><Profile /></PrivateRoute>} />
+        <Route path="/bmi"       element={<PrivateRoute><BMI /></PrivateRoute>} />
+        <Route path="/hospitals" element={<PrivateRoute><Hospitals /></PrivateRoute>} />
         <Route path="/admin"     element={<AdminRoute><Admin /></AdminRoute>} />
         <Route path="*"          element={<Navigate to="/" replace />} />
       </Routes>
