@@ -30,18 +30,33 @@ export default function Hospitals() {
   const findByGPS = async () => {
     setLoading(true); setError(''); setHospitals([]); setSearched(false)
     try {
-      const pos = await new Promise((res, rej) =>
-        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 12000, enableHighAccuracy: true })
+      let lat, lon
+
+      if (typeof window !== 'undefined' && window.Capacitor) {
+        // Android app — use Capacitor Geolocation (handles permission dialog)
+        const { Geolocation } = await import('@capacitor/geolocation')
+        await Geolocation.requestPermissions()
+        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 })
+        lat = pos.coords.latitude
+        lon = pos.coords.longitude
+      } else {
+        // Browser — use standard Web API
+        const pos = await new Promise((res, rej) =>
+          navigator.geolocation.getCurrentPosition(res, rej, { timeout: 12000, enableHighAccuracy: true })
+        )
+        lat = pos.coords.latitude
+        lon = pos.coords.longitude
+      }
+
+      const res = await fetch(
+        `${API_BASE}/api/hospitals?lat=${lat}&lon=${lon}&radius=10000`,
+        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
       )
-      const { latitude: lat, longitude: lon } = pos.coords
-      const res = await fetch(`${API_BASE}/api/hospitals?lat=${lat}&lon=${lon}&radius=10000`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      })
       const data = await res.json()
       processResults(data)
     } catch (err) {
-      if (err.code === 1) {
-        setError('Location permission denied on your device.')
+      if (err.code === 1 || err.message?.includes('denied') || err.message?.includes('permission')) {
+        setError('Location permission denied. Please allow location in your phone Settings and try again.')
         setShowManual(true)
       } else {
         setError('Could not get your location. Please use the city search below.')

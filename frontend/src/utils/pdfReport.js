@@ -1,10 +1,64 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
-export function generateHealthReport(user, history, stats) {
-  const doc = new jsPDF()
+// Detect if running inside Capacitor (Android app)
+const isCapacitor = () => typeof window !== 'undefined' && window.Capacitor !== undefined
+
+async function downloadPDFNative(doc, fileName) {
+  try {
+    const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem')
+    const { Share } = await import('@capacitor/share')
+
+    // Get base64 string (remove data:application/pdf;base64, prefix)
+    const base64 = doc.output('datauristring').split(',')[1]
+
+    // Save to Cache directory
+    const result = await Filesystem.writeFile({
+      path: fileName,
+      data: base64,
+      directory: Directory.Cache,
+    })
+
+    // Share/open the saved file so user can save or view it
+    await Share.share({
+      title: 'MediPredict Health Report',
+      text: 'Your MediPredict AI Health Report',
+      url: result.uri,
+      dialogTitle: 'Save or Share Your Health Report',
+    })
+  } catch (err) {
+    console.error('Native PDF error:', err)
+    // Fallback — open data URI
+    const dataUri = doc.output('datauristring')
+    const link = document.createElement('a')
+    link.href = dataUri
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+}
+
+function downloadPDFBrowser(doc, fileName) {
+  try {
+    const blob = doc.output('blob')
+    const url  = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href     = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setTimeout(() => URL.revokeObjectURL(url), 3000)
+  } catch {
+    doc.save(fileName)
+  }
+}
+
+export async function generateHealthReport(user, history, stats) {
+  const doc   = new jsPDF()
   const pageW = doc.internal.pageSize.getWidth()
-  const now = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })
+  const now   = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })
 
   // ── Header ────────────────────────────────────────────────────────────────
   doc.setFillColor(30, 41, 59)
@@ -31,11 +85,11 @@ export function generateHealthReport(user, history, stats) {
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(60, 60, 80)
   const info = [
-    ['Name', user?.full_name || 'N/A'],
-    ['Email', user?.email || 'N/A'],
-    ['Gender', user?.gender || 'N/A'],
-    ['Age', user?.age ? `${user.age} years` : 'N/A'],
-    ['Blood Group', user?.blood_group || 'N/A'],
+    ['Name',       user?.full_name   || 'N/A'],
+    ['Email',      user?.email       || 'N/A'],
+    ['Gender',     user?.gender      || 'N/A'],
+    ['Age',        user?.age ? `${user.age} years` : 'N/A'],
+    ['Blood Group',user?.blood_group || 'N/A'],
   ]
   info.forEach(([label, val], i) => {
     doc.setFont('helvetica', 'bold')
@@ -56,10 +110,10 @@ export function generateHealthReport(user, history, stats) {
 
   if (stats) {
     const boxes = [
-      ['Total', stats.total_predictions || 0, [99, 102, 241]],
-      ['Disease', stats.by_type?.disease || 0, [16, 185, 129]],
-      ['Diabetes', stats.by_type?.diabetes || 0, [245, 158, 11]],
-      ['Heart', stats.by_type?.heart || 0, [239, 68, 68]],
+      ['Total',    stats.total_predictions    || 0, [99, 102, 241]],
+      ['Disease',  stats.by_type?.disease     || 0, [16, 185, 129]],
+      ['Diabetes', stats.by_type?.diabetes    || 0, [245, 158, 11]],
+      ['Heart',    stats.by_type?.heart       || 0, [239, 68, 68]],
     ]
     const bw = (pageW - 28 - 9) / 4
     boxes.forEach(([label, val, color], i) => {
@@ -69,10 +123,10 @@ export function generateHealthReport(user, history, stats) {
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text(String(val), x + bw/2, y + 11, { align:'center' })
+      doc.text(String(val), x + bw / 2, y + 11, { align: 'center' })
       doc.setFontSize(7)
       doc.setFont('helvetica', 'normal')
-      doc.text(label, x + bw/2, y + 18, { align:'center' })
+      doc.text(label, x + bw / 2, y + 18, { align: 'center' })
     })
     y += 32
   }
@@ -98,17 +152,16 @@ export function generateHealthReport(user, history, stats) {
       }
       return [i + 1, date, r.prediction_type?.toUpperCase(), result]
     })
-
     autoTable(doc, {
       startY: y,
       head: [['#', 'Date', 'Type', 'Result']],
       body: rows,
       theme: 'striped',
-      headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold', fontSize: 9 },
-      bodyStyles: { fontSize: 9, textColor: [40, 40, 60] },
-      alternateRowStyles: { fillColor: [245, 247, 255] },
-      columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 28 }, 2: { cellWidth: 28 } },
-      margin: { left: 14, right: 14 },
+      headStyles:          { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+      bodyStyles:          { fontSize: 9, textColor: [40, 40, 60] },
+      alternateRowStyles:  { fillColor: [245, 247, 255] },
+      columnStyles:        { 0: { cellWidth: 12 }, 1: { cellWidth: 28 }, 2: { cellWidth: 28 } },
+      margin:              { left: 14, right: 14 },
     })
   } else {
     doc.setFontSize(10)
@@ -124,51 +177,19 @@ export function generateHealthReport(user, history, stats) {
     doc.setFontSize(8)
     doc.setTextColor(150, 150, 170)
     doc.setFont('helvetica', 'normal')
-    doc.text('This report is generated by MediPredict AI and is for informational purposes only. Consult a doctor for medical advice.', pageW / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' })
+    doc.text(
+      'This report is generated by MediPredict AI and is for informational purposes only. Consult a doctor for medical advice.',
+      pageW / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' }
+    )
     doc.text(`Page ${p} of ${pages}`, pageW - 14, doc.internal.pageSize.getHeight() - 8, { align: 'right' })
   }
 
-  const fileName = `MediPredict_Report_${user?.full_name?.replace(/\s/g,'_') || 'User'}_${Date.now()}.pdf`
+  // ── Save / Share ──────────────────────────────────────────────────────────
+  const fileName = `MediPredict_Report_${user?.full_name?.replace(/\s/g, '_') || 'User'}_${Date.now()}.pdf`
 
-  // Detect Capacitor (Android app) vs browser
-  const isCapacitor = typeof window !== 'undefined' && window.Capacitor !== undefined
-
-  if (isCapacitor) {
-    // Android WebView — open PDF as data URI in new window
-    const dataUri = doc.output('datauristring')
-    const newWin = window.open('', '_blank')
-    if (newWin) {
-      newWin.document.write(
-        `<html><head><title>${fileName}</title></head>` +
-        `<body style="margin:0;padding:0;background:#000;">` +
-        `<iframe src="${dataUri}" width="100%" height="100%" style="border:none;position:fixed;top:0;left:0;width:100%;height:100%;"></iframe>` +
-        `</body></html>`
-      )
-      newWin.document.close()
-    } else {
-      // Fallback: share via data URI directly
-      const link = document.createElement('a')
-      link.href = dataUri
-      link.download = fileName
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }
+  if (isCapacitor()) {
+    await downloadPDFNative(doc, fileName)
   } else {
-    // Browser — standard blob download (most reliable)
-    try {
-      const blob = doc.output('blob')
-      const url  = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href     = url
-      link.download = fileName
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      setTimeout(() => URL.revokeObjectURL(url), 3000)
-    } catch {
-      // Last fallback
-      doc.save(fileName)
-    }
+    downloadPDFBrowser(doc, fileName)
   }
 }
