@@ -1,83 +1,30 @@
 import { useState } from 'react'
 import './Hospitals.css'
 
-const OVERPASS_MIRRORS = [
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass-api.de/api/interpreter',
-  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
-]
-
-async function fetchOverpass(query) {
-  for (const mirror of OVERPASS_MIRRORS) {
-    try {
-      const res = await fetch(mirror, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(query)}`,
-        signal: AbortSignal.timeout(15000),
-      })
-      if (!res.ok) continue
-      const data = await res.json()
-      return data
-    } catch {
-      continue
-    }
-  }
-  throw new Error('All Overpass mirrors failed')
-}
-
-async function geocodeCity(city) {
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,
-    { headers: { 'Accept-Language': 'en' } }
-  )
-  const data = await res.json()
-  if (!data || data.length === 0) throw new Error('City not found')
-  return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), displayName: data[0].display_name }
-}
-
-function calcDist(lat1, lon1, lat2, lon2) {
-  return +(Math.sqrt((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2) * 111).toFixed(2)
-}
+const API_BASE = import.meta.env.VITE_API_URL || 'https://medipredict-ai-1-zyer.onrender.com'
 
 export default function Hospitals() {
-  const [loading, setLoading]     = useState(false)
-  const [hospitals, setHospitals] = useState([])
-  const [error, setError]         = useState('')
-  const [locationName, setLocationName] = useState('')
-  const [searched, setSearched]   = useState(false)
-  const [cityInput, setCityInput] = useState('')
+  const [loading, setLoading]       = useState(false)
+  const [hospitals, setHospitals]   = useState([])
+  const [error, setError]           = useState('')
+  const [locationName, setLocation] = useState('')
+  const [searched, setSearched]     = useState(false)
+  const [cityInput, setCityInput]   = useState('')
   const [showManual, setShowManual] = useState(false)
 
-  const searchByCoords = async (lat, lon) => {
-    const query = `[out:json][timeout:30];(
-      node["amenity"="hospital"](around:10000,${lat},${lon});
-      way["amenity"="hospital"](around:10000,${lat},${lon});
-      node["amenity"="clinic"](around:8000,${lat},${lon});
-      node["amenity"="doctors"](around:8000,${lat},${lon});
-      node["healthcare"="hospital"](around:10000,${lat},${lon});
-    );out center body;`
-
-    const data = await fetchOverpass(query)
-    const results = data.elements
-      .filter(e => e.tags?.name)
-      .map(e => {
-        const eLat = e.lat || e.center?.lat
-        const eLon = e.lon || e.center?.lon
-        return {
-          id: e.id,
-          name: e.tags.name,
-          type: e.tags.amenity || e.tags.healthcare || 'hospital',
-          phone: e.tags.phone || e.tags['contact:phone'] || null,
-          emergency: e.tags.emergency === 'yes',
-          lat: eLat, lon: eLon,
-          dist: calcDist(lat, lon, eLat, eLon),
-        }
-      })
-      .filter(e => e.lat && e.lon)
-      .sort((a, b) => a.dist - b.dist)
-      .slice(0, 20)
-    return results
+  const processResults = (data) => {
+    if (data.error) {
+      setError(data.error === 'City not found'
+        ? 'City not found. Please try a different name (e.g. "Coimbatore" or "Anna Nagar Chennai").'
+        : 'Hospital data is temporarily unavailable. Please try again in a few seconds.')
+      return
+    }
+    setHospitals(data.elements || [])
+    setLocation(data.location || '')
+    setSearched(true)
+    if (!data.elements || data.elements.length === 0) {
+      setError('No hospitals found in this area. Try a larger city name or nearby area.')
+    }
   }
 
   const findByGPS = async () => {
@@ -87,19 +34,17 @@ export default function Hospitals() {
         navigator.geolocation.getCurrentPosition(res, rej, { timeout: 12000, enableHighAccuracy: true })
       )
       const { latitude: lat, longitude: lon } = pos.coords
-      const results = await searchByCoords(lat, lon)
-      setHospitals(results)
-      setLocationName('your current location')
-      setSearched(true)
-      if (results.length === 0) setError('No hospitals found within 10km. Try searching by city name instead.')
+      const res = await fetch(`${API_BASE}/api/hospitals?lat=${lat}&lon=${lon}&radius=10000`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      })
+      const data = await res.json()
+      processResults(data)
     } catch (err) {
       if (err.code === 1) {
-        setError('Location permission denied.')
+        setError('Location permission denied on your device.')
         setShowManual(true)
-      } else if (err.message?.includes('Overpass')) {
-        setError('Hospital data service is temporarily unavailable. Please try again in a moment.')
       } else {
-        setError('Could not get your location. Please try the city search below.')
+        setError('Could not get your location. Please use the city search below.')
         setShowManual(true)
       }
     } finally { setLoading(false) }
@@ -110,15 +55,14 @@ export default function Hospitals() {
     if (!cityInput.trim()) return
     setLoading(true); setError(''); setHospitals([]); setSearched(false)
     try {
-      const { lat, lon, displayName } = await geocodeCity(cityInput)
-      const results = await searchByCoords(lat, lon)
-      setHospitals(results)
-      setLocationName(displayName.split(',').slice(0, 2).join(', '))
-      setSearched(true)
-      if (results.length === 0) setError('No hospitals found in this area. Try a nearby city or area name.')
-    } catch (err) {
-      if (err.message === 'City not found') setError('City not found. Please try a different name.')
-      else setError('Could not load hospitals. Please check your internet and try again.')
+      const res = await fetch(
+        `${API_BASE}/api/hospitals?city=${encodeURIComponent(cityInput.trim())}&radius=10000`,
+        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+      )
+      const data = await res.json()
+      processResults(data)
+    } catch {
+      setError('Network error. Please check your internet and try again.')
     } finally { setLoading(false) }
   }
 
@@ -148,19 +92,21 @@ export default function Hospitals() {
           </button>
         </div>
 
-        {/* Manual city search */}
+        {/* City Name Search */}
         <div className={`hosp-manual-card ${showManual ? 'hosp-manual-highlight' : ''}`}>
           <div className="hosp-manual-title">🔍 Search by City / Area Name</div>
           <form onSubmit={findByCity} className="hosp-manual-form">
             <input
               type="text"
-              placeholder="e.g. Chennai, Coimbatore, Anna Nagar..."
+              placeholder="e.g. Coimbatore, Chennai, Anna Nagar..."
               value={cityInput}
               onChange={e => setCityInput(e.target.value)}
               className="hosp-city-input"
               id="city-search-input"
             />
-            <button type="submit" className="hosp-city-btn" disabled={loading}>Search</button>
+            <button type="submit" className="hosp-city-btn" disabled={loading}>
+              {loading ? <span className="spinner-sm"></span> : 'Search'}
+            </button>
           </form>
           {showManual && (
             <div className="hosp-manual-tip">
@@ -171,9 +117,9 @@ export default function Hospitals() {
 
         {error && <div className="hosp-error">⚠️ {error}</div>}
 
-        {searched && (
+        {searched && hospitals.length > 0 && (
           <div className="hosp-location-info">
-            📍 Showing {hospitals.length} hospitals near <strong>{locationName}</strong>
+            📍 Showing <strong>{hospitals.length}</strong> hospitals near <strong>{locationName.split(',').slice(0, 2).join(', ')}</strong>
           </div>
         )}
 
