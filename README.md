@@ -232,7 +232,7 @@ Always consult a qualified doctor for medical advice.
 
 **Jayasurya M**  
 [![GitHub](https://img.shields.io/badge/GitHub-Jayasurya--M--psg-181717?style=flat&logo=github)](https://github.com/Jayasurya-M-psg)
-[![LinkedIn](https://www.linkedin.com/in/jayasurya-m-766892345/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Jayasurya--M--psg-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jayasurya-m-766892345/)
 
 ---
 
