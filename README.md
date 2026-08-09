@@ -1,172 +1,240 @@
-# 🏥 MediPredict AI — AI-Powered Disease Prediction System
+# 🏥 MediPredict AI
 
-> PROJECT | INFORMATION TECHNOLOGY | Healthcare Domain
+<div align="center">
 
-[![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688?logo=fastapi)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev)
-[![MongoDB](https://img.shields.io/badge/MongoDB-7-47A248?logo=mongodb)](https://mongodb.com)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://postgresql.org)
+![MediPredict AI](https://img.shields.io/badge/MediPredict-AI-6366f1?style=for-the-badge&logo=heart&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Android](https://img.shields.io/badge/Android-App-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+
+**An AI-powered health prediction web & Android application** built with React, FastAPI, and Machine Learning. Predict diseases, assess heart & diabetes risk, calculate BMI, find nearby hospitals, and download professional health reports — all in one app.
+
+🌐 **Live Demo:** [frontend-kappa-snowy-21.vercel.app](https://frontend-kappa-snowy-21.vercel.app)
+
+</div>
 
 ---
-
-## 📖 About
-
-**MediPredict AI** is a full-stack web application that uses Machine Learning to predict diseases from symptoms and assess health risks. It combines a Python FastAPI backend with 3 trained ML models, a React frontend with beautiful UI, and dual database architecture (MongoDB + PostgreSQL).
 
 ## ✨ Features
 
 | Feature | Description |
 |---|---|
-| 🔬 **Disease Prediction** | Select from 132 symptoms → Predicts top-3 from 41 diseases |
-| 💉 **Diabetes Risk** | Enter vitals → XGBoost model predicts diabetes risk % |
-| ❤️ **Heart Disease Risk** | Cardiac data → Gradient Boosting predicts heart risk % |
-| 👨‍⚕️ **Specialist Finder** | Recommends the right doctor for your predicted condition |
-| 📊 **Health Dashboard** | History, trends, and prediction analytics with charts |
-| 🤖 **AI Chatbot** | MediBot health assistant with keyword-based responses |
-| ⚙️ **Admin Panel** | User management, system analytics, prediction logs |
-| 🔐 **JWT Auth** | Secure login/register with token-based authentication |
+| 🔬 **Disease Prediction** | Predict diseases from symptoms using ML (133 symptoms, 41 diseases) |
+| 💉 **Diabetes Risk** | Assess diabetes risk with clinical parameters |
+| ❤️ **Heart Risk** | Heart disease risk assessment with confidence scoring |
+| ⚖️ **BMI Calculator** | Calculate BMI with visual gauge and health advice |
+| 🏥 **Nearby Hospitals** | Find hospitals within 10km by GPS or city name |
+| 📄 **Health Report PDF** | Download a professional PDF report of all predictions |
+| 📊 **Health Dashboard** | View full prediction history with expandable cards |
+| 👤 **User Accounts** | Register/login with email — data saved permanently |
+| 🤖 **AI Chatbot** | Built-in health chatbot assistant |
+| ⚙️ **Admin Panel** | User management and analytics for administrators |
 
-## 🛠️ Tech Stack
+---
 
-**Backend:** Python 3.11, FastAPI, Scikit-learn, XGBoost, Motor (MongoDB), SQLAlchemy (PostgreSQL), JWT
+## 🖥️ Tech Stack
 
-**Frontend:** React 18, Vite, React Router, Recharts, Axios, Vanilla CSS
+### Frontend
+- **React 18** + Vite
+- **React Router** for navigation
+- **Recharts** for health analytics charts
+- **jsPDF + jsPDF-AutoTable** for PDF generation
+- **Capacitor** for Android app wrapper
 
-**Database:** MongoDB (predictions/history) + PostgreSQL (users)
+### Backend
+- **FastAPI** (Python) — REST API
+- **Scikit-learn** — ML models (Random Forest, SVM, Naive Bayes)
+- **MongoDB Atlas** — cloud database for user accounts & history
+- **httpx** — async HTTP for hospital data proxy
 
-**ML Models:**
-- Random Forest (Disease prediction — 98%+ accuracy)
-- XGBoost (Diabetes risk — ~82% accuracy)
-- Gradient Boosting (Heart disease — ~87% accuracy)
+### Deployment
+- **Frontend:** Vercel
+- **Backend:** Render
+- **Database:** MongoDB Atlas (Free Tier)
+- **Android:** Capacitor (APK)
 
-## 🚀 Quick Start (Windows)
+---
+
+## 📱 App Screenshots
+
+> Disease Prediction → Dashboard → BMI Calculator → Nearby Hospitals
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.11+
 - Node.js 18+
-- MongoDB Community Server
-- PostgreSQL 16
+- Python 3.10+
+- MongoDB Atlas account (free)
 
-### 1. Run the Setup Script
-```batch
-cd medipredict-ai
-setup.bat
-```
-This will:
-- Create Python virtual environment
-- Install all backend dependencies
-- Train all 3 ML models
-- Install frontend dependencies
-
-### 2. Start MongoDB & PostgreSQL
-Make sure MongoDB is running on port 27017 and PostgreSQL on port 5432.
-
-### 3. Configure Environment
-```batch
-cd backend
-copy .env.example .env
-# Edit .env with your PostgreSQL credentials
-```
-
-### 4. Start Backend
-```batch
-cd backend
-venv\Scripts\activate
-uvicorn app.main:app --reload
-# Backend runs on http://localhost:8000
-# API docs at http://localhost:8000/docs
-```
-
-### 5. Start Frontend
-```batch
-cd frontend
-npm run dev
-# Frontend runs on http://localhost:5173
-```
-
-## 🐳 Docker Deployment (Easiest)
-
+### 1. Clone the repository
 ```bash
-docker-compose up --build
-# Access at http://localhost
+git clone https://github.com/Jayasurya-M-psg/medipredict-ai.git
+cd medipredict-ai
 ```
 
-## 📁 Project Structure
+### 2. Backend Setup
+```bash
+cd backend
+pip install -r requirements.txt
+
+# Create .env file
+MONGO_URI=your_mongodb_atlas_uri
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
+
+# Train ML models
+python app/ml/train_models.py
+
+# Run server
+uvicorn app.main:app --reload
+```
+
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+
+# Create .env file
+VITE_API_URL=http://localhost:8000
+
+# Run dev server
+npm run dev
+```
+
+### 4. Android App (optional)
+```bash
+cd frontend
+npm run build
+npx cap sync android
+cd android
+./gradlew assembleDebug
+```
+
+---
+
+## 📂 Project Structure
 
 ```
 medipredict-ai/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py           # FastAPI application
-│   │   ├── config.py         # Settings
-│   │   ├── routes/           # API endpoints
-│   │   │   ├── auth.py       # Register, login, profile
-│   │   │   ├── predict.py    # ML prediction endpoints
-│   │   │   ├── health.py     # Prediction history
-│   │   │   └── admin.py      # Admin endpoints
-│   │   ├── ml/               # Machine Learning
-│   │   │   ├── train_models.py  # Training pipeline
+│   │   ├── main.py              # FastAPI app entry point
+│   │   ├── config.py            # App configuration
+│   │   ├── routes/
+│   │   │   ├── auth.py          # Login / Register
+│   │   │   ├── predict.py       # ML prediction endpoints
+│   │   │   ├── health.py        # History & stats
+│   │   │   ├── hospitals.py     # Hospital search proxy
+│   │   │   └── admin.py         # Admin management
+│   │   ├── ml/
 │   │   │   ├── disease_predictor.py
 │   │   │   ├── diabetes_predictor.py
-│   │   │   └── heart_predictor.py
-│   │   ├── models/           # Pydantic schemas & SQLAlchemy models
-│   │   ├── database/         # MongoDB & PostgreSQL connections
-│   │   └── utils/            # Auth helpers, disease info
-│   ├── saved_models/         # Trained .pkl files (generated)
+│   │   │   ├── heart_predictor.py
+│   │   │   └── train_models.py
+│   │   ├── models/              # Pydantic schemas
+│   │   └── database/            # MongoDB connection
 │   └── requirements.txt
-├── frontend/
-│   └── src/
-│       ├── pages/            # Home, Predict, Dashboard, Profile, Admin
-│       ├── components/       # Navbar, Chatbot
-│       ├── contexts/         # AuthContext
-│       └── services/         # API client
-├── docker-compose.yml
-└── setup.bat                 # Windows setup script
+│
+└── frontend/
+    ├── src/
+    │   ├── pages/
+    │   │   ├── Home.jsx         # Landing page
+    │   │   ├── Predict.jsx      # Disease/Diabetes/Heart prediction
+    │   │   ├── Dashboard.jsx    # History & analytics
+    │   │   ├── BMI.jsx          # BMI Calculator
+    │   │   ├── Hospitals.jsx    # Nearby hospital finder
+    │   │   ├── Profile.jsx      # User profile
+    │   │   └── Admin.jsx        # Admin panel
+    │   ├── components/
+    │   │   ├── Navbar/
+    │   │   └── Chatbot/
+    │   ├── utils/
+    │   │   └── pdfReport.js     # PDF generation
+    │   ├── services/
+    │   │   └── api.js           # API calls
+    │   └── contexts/
+    │       └── AuthContext.jsx  # Auth state
+    └── android/                 # Capacitor Android project
 ```
-
-## 🔌 API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/auth/register` | Create new account |
-| POST | `/api/auth/login` | Get JWT token |
-| GET  | `/api/auth/me` | Get current user |
-| GET  | `/api/predict/symptoms` | List all symptoms |
-| POST | `/api/predict/disease` | Disease prediction |
-| POST | `/api/predict/diabetes` | Diabetes risk |
-| POST | `/api/predict/heart` | Heart disease risk |
-| GET  | `/api/health/history` | Prediction history |
-| GET  | `/api/health/stats` | User statistics |
-| GET  | `/api/admin/stats` | Admin analytics |
-
-📖 **Full API docs:** `http://localhost:8000/docs`
-
-## 🧠 Machine Learning Details
-
-### Disease Prediction Model
-- **Algorithm:** Random Forest (200 trees)
-- **Dataset:** 41 diseases × 132 symptoms
-- **Output:** Top-3 diseases with confidence %
-
-### Diabetes Risk Model
-- **Algorithm:** XGBoost
-- **Features:** Glucose, BMI, Age, Blood Pressure, Insulin, etc.
-- **Output:** Risk score (0-100%) + risk level
-
-### Heart Disease Risk Model
-- **Algorithm:** Gradient Boosting
-- **Features:** Age, Cholesterol, ECG, Max HR, Chest Pain Type, etc.
-- **Output:** Risk score (0-100%) + risk level + recommendations
-
-## 👥 Team
-
-Solo project by JAYASURYA M — Final Year, B.Tech INFORMATION TECHNOLOGY,PSG COLLEGE OF TECHNOLOGY.COIMBATORE
-
-## ⚠️ Disclaimer
-
-> This application is developed for **educational purposes only** as a project. It is NOT intended for medical diagnosis. Always consult a qualified healthcare professional for medical advice.
 
 ---
 
-*Built with ❤️ using Python, FastAPI, React, and Machine Learning*
+## 🤖 ML Models
+
+| Model | Algorithm | Accuracy |
+|---|---|---|
+| Disease Prediction | Random Forest + Naive Bayes + SVM | ~95% |
+| Diabetes Risk | Random Forest Classifier | ~90% |
+| Heart Risk | Gradient Boosting Classifier | ~88% |
+
+- **133 symptoms** for disease prediction
+- **41 diseases** covered
+- Confidence scores and specialist recommendations included
+
+---
+
+## 🌐 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | User login |
+| POST | `/api/predict/disease` | Disease prediction |
+| POST | `/api/predict/diabetes` | Diabetes risk |
+| POST | `/api/predict/heart` | Heart risk |
+| GET | `/api/health/history` | User prediction history |
+| GET | `/api/health/stats` | Dashboard statistics |
+| GET | `/api/hospitals` | Nearby hospital search |
+| GET | `/api/admin/users` | Admin: list users |
+
+---
+
+## 📋 Environment Variables
+
+### Backend (`.env`)
+```env
+MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/medipredict
+SECRET_KEY=your-secret-key-here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
+APP_VERSION=2.0.0
+ALLOWED_ORIGINS=https://your-frontend.vercel.app
+```
+
+### Frontend (`.env`)
+```env
+VITE_API_URL=https://your-backend.onrender.com
+```
+
+---
+
+## 🔒 Security
+
+- JWT-based authentication (7-day tokens)
+- Bcrypt password hashing
+- CORS configured for specific origins
+- Admin role-based access control
+
+---
+
+## 📄 License
+
+This project is built for educational and personal health awareness purposes.  
+Always consult a qualified doctor for medical advice.
+
+---
+
+## 👤 Author
+
+**Jayasurya M**  
+[![GitHub](https://img.shields.io/badge/GitHub-Jayasurya--M--psg-181717?style=flat&logo=github)](https://github.com/Jayasurya-M-psg)
+
+---
+
+<div align="center">
+  Made with ❤️ using React + FastAPI + AI
+</div>
