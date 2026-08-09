@@ -221,7 +221,7 @@ VITE_API_URL=https://your-backend.onrender.com
 
 ---
 
-## 📄 License
+## 📄 Disclaimer
 
 This project is built for educational and personal health awareness purposes.  
 Always consult a qualified doctor for medical advice.
@@ -232,9 +232,7 @@ Always consult a qualified doctor for medical advice.
 
 **Jayasurya M**  
 [![GitHub](https://img.shields.io/badge/GitHub-Jayasurya--M--psg-181717?style=flat&logo=github)](https://github.com/Jayasurya-M-psg)
+[![LinkedIn](https://www.linkedin.com/in/jayasurya-m-766892345/)
 
 ---
 
-<div align="center">
-  Made with ❤️ using React + FastAPI + AI
-</div>
