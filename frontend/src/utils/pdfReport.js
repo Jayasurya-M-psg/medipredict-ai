@@ -128,5 +128,47 @@ export function generateHealthReport(user, history, stats) {
     doc.text(`Page ${p} of ${pages}`, pageW - 14, doc.internal.pageSize.getHeight() - 8, { align: 'right' })
   }
 
-  doc.save(`MediPredict_Report_${user?.full_name?.replace(/\s/g,'_') || 'User'}_${Date.now()}.pdf`)
+  const fileName = `MediPredict_Report_${user?.full_name?.replace(/\s/g,'_') || 'User'}_${Date.now()}.pdf`
+
+  // Detect Capacitor (Android app) vs browser
+  const isCapacitor = typeof window !== 'undefined' && window.Capacitor !== undefined
+
+  if (isCapacitor) {
+    // Android WebView — open PDF as data URI in new window
+    const dataUri = doc.output('datauristring')
+    const newWin = window.open('', '_blank')
+    if (newWin) {
+      newWin.document.write(
+        `<html><head><title>${fileName}</title></head>` +
+        `<body style="margin:0;padding:0;background:#000;">` +
+        `<iframe src="${dataUri}" width="100%" height="100%" style="border:none;position:fixed;top:0;left:0;width:100%;height:100%;"></iframe>` +
+        `</body></html>`
+      )
+      newWin.document.close()
+    } else {
+      // Fallback: share via data URI directly
+      const link = document.createElement('a')
+      link.href = dataUri
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  } else {
+    // Browser — standard blob download (most reliable)
+    try {
+      const blob = doc.output('blob')
+      const url  = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href     = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      setTimeout(() => URL.revokeObjectURL(url), 3000)
+    } catch {
+      // Last fallback
+      doc.save(fileName)
+    }
+  }
 }
