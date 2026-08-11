@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database.mongo import connect_to_mongo, close_mongo_connection
-from app.routes import auth, predict, health, admin, hospitals
+from app.routes import auth, predict, health, admin, hospitals, appointments, medicine
 
 app = FastAPI(
     title="MediPredict AI API",
@@ -29,11 +29,13 @@ async def startup():
 async def shutdown():
     await close_mongo_connection()
 
-app.include_router(auth.router,      prefix="/api/auth",      tags=["Authentication"])
-app.include_router(predict.router,   prefix="/api/predict",   tags=["Predictions"])
-app.include_router(health.router,    prefix="/api/health",    tags=["Health Records"])
-app.include_router(admin.router,     prefix="/api/admin",     tags=["Admin"])
-app.include_router(hospitals.router, prefix="/api",           tags=["Hospitals"])
+app.include_router(auth.router,         prefix="/api/auth",      tags=["Authentication"])
+app.include_router(predict.router,      prefix="/api/predict",   tags=["Predictions"])
+app.include_router(health.router,       prefix="/api/health",    tags=["Health Records"])
+app.include_router(admin.router,        prefix="/api/admin",     tags=["Admin"])
+app.include_router(hospitals.router,    prefix="/api",           tags=["Hospitals"])
+app.include_router(appointments.router, prefix="/api",           tags=["Appointments"])
+app.include_router(medicine.router,     prefix="/api",           tags=["Medicine"])
 
 @app.get("/", tags=["Root"])
 async def root():

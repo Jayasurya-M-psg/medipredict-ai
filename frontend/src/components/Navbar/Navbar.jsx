@@ -34,10 +34,12 @@ export default function Navbar() {
         <div className="nav-links">
           <Link to="/" className={isActive('/')}>Home</Link>
           {user && <>
-            <Link to="/predict"   className={isActive('/predict')}>Predict</Link>
-            <Link to="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>
-            <Link to="/bmi"       className={isActive('/bmi')}>BMI</Link>
-            <Link to="/hospitals" className={isActive('/hospitals')}>Hospitals</Link>
+            <Link to="/predict"      className={isActive('/predict')}>Predict</Link>
+            <Link to="/dashboard"    className={isActive('/dashboard')}>Dashboard</Link>
+            <Link to="/bmi"          className={isActive('/bmi')}>BMI</Link>
+            <Link to="/hospitals"    className={isActive('/hospitals')}>Hospitals</Link>
+            <Link to="/appointments" className={isActive('/appointments')}>Appointments</Link>
+            <Link to="/medicine"     className={isActive('/medicine')}>Medicine</Link>
             {isAdmin && <Link to="/admin" className={isActive('/admin')}>Admin</Link>}
           </>}
         </div>
@@ -71,11 +73,13 @@ export default function Navbar() {
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
         <Link to="/" className="mobile-link">🏠 Home</Link>
         {user && <>
-          <Link to="/predict"   className="mobile-link">🔬 Predict</Link>
-          <Link to="/dashboard" className="mobile-link">📊 Dashboard</Link>
-          <Link to="/bmi"       className="mobile-link">⚖️ BMI Calculator</Link>
-          <Link to="/hospitals" className="mobile-link">🏥 Nearby Hospitals</Link>
-          <Link to="/profile"   className="mobile-link">👤 Profile</Link>
+          <Link to="/predict"      className="mobile-link">🔬 Predict</Link>
+          <Link to="/dashboard"    className="mobile-link">📊 Dashboard</Link>
+          <Link to="/bmi"          className="mobile-link">⚖️ BMI Calculator</Link>
+          <Link to="/hospitals"    className="mobile-link">🏥 Nearby Hospitals</Link>
+          <Link to="/appointments" className="mobile-link">🩺 Doctor Appointments</Link>
+          <Link to="/medicine"     className="mobile-link">💊 Medicine Info</Link>
+          <Link to="/profile"      className="mobile-link">👤 Profile</Link>
           {isAdmin && <Link to="/admin" className="mobile-link">⚙️ Admin</Link>}
           <button className="mobile-link logout-mobile" onClick={handleLogout}>🚪 Logout</button>
         </>}
