@@ -78,6 +78,11 @@ export default function Medicine() {
 
         {result && (
           <div className="med-result animate-fade-in-up">
+            {result.searched_as && result.searched_as !== result.original_query && (
+              <div className="med-mapped-notice">
+                ℹ️ "<strong>{result.original_query}</strong>" is known in the US FDA database as "<strong>{result.searched_as}</strong>"
+              </div>
+            )}
             <div className="med-result-header">
               <div className="med-result-icon">💊</div>
               <div>

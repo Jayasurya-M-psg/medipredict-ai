@@ -77,9 +77,13 @@ export default function Hospitals() {
         lon = pos.coords.longitude
       } else {
         setStatus('📍 Getting your location...')
-        const pos = await new Promise((res, rej) =>
-          navigator.geolocation.getCurrentPosition(res, rej, { timeout: 12000, enableHighAccuracy: true })
-        )
+        // Browser: try low-accuracy first (fast), fallback to high-accuracy
+        const pos = await new Promise((res, rej) => {
+          navigator.geolocation.getCurrentPosition(res,
+            () => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 15000, enableHighAccuracy: true }),
+            { timeout: 8000, enableHighAccuracy: false }
+          )
+        })
         lat = pos.coords.latitude
         lon = pos.coords.longitude
       }

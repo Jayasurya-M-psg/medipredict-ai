@@ -120,13 +120,18 @@ async def find_doctors(lat: float = Query(None), lon: float = Query(None),
     if lat is None or lon is None:
         return {"error": "Provide lat/lon or city", "elements": []}
 
-    query = f"""[out:json][timeout:30];(
+    query = f"""[out:json][timeout:35];(
   node["amenity"="doctors"](around:{radius},{lat},{lon});
   node["amenity"="clinic"](around:{radius},{lat},{lon});
   way["amenity"="clinic"](around:{radius},{lat},{lon});
+  node["amenity"="hospital"](around:{radius},{lat},{lon});
+  way["amenity"="hospital"](around:{radius},{lat},{lon});
   node["healthcare"="doctor"](around:{radius},{lat},{lon});
   node["healthcare"="clinic"](around:{radius},{lat},{lon});
+  node["healthcare"="hospital"](around:{radius},{lat},{lon});
   node["amenity"="health_post"](around:{radius},{lat},{lon});
+  node["amenity"="medical_centre"](around:{radius},{lat},{lon});
+  node["building"="hospital"](around:{radius},{lat},{lon});
 );out center body;"""
 
     import math

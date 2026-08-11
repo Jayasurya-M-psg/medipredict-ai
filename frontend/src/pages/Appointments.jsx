@@ -187,8 +187,13 @@ export default function Appointments() {
         const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 })
         lat = pos.coords.latitude; lon = pos.coords.longitude
       } else {
-        const pos = await new Promise((res, rej) =>
-          navigator.geolocation.getCurrentPosition(res, rej, { timeout: 12000 }))
+        // Try low-accuracy first (fast), then high-accuracy fallback
+        const pos = await new Promise((res, rej) => {
+          navigator.geolocation.getCurrentPosition(res,
+            () => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 15000, enableHighAccuracy: true }),
+            { timeout: 8000, enableHighAccuracy: false }
+          )
+        })
         lat = pos.coords.latitude; lon = pos.coords.longitude
       }
       await searchDoctors({ lat, lon, specialty: selSpecialty?.query })
