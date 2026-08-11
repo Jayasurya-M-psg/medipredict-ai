@@ -82,6 +82,10 @@ async def close_mongo_connection():
 def get_mongo_db():
     return mongo.db
 
+async def get_db():
+    """Async accessor used by route modules (e.g. `db = await get_db()`)."""
+    return mongo.db
+
 
 # ── Sync-to-Async shim (only used if mongomock.motor_asyncio missing) ──────
 class _SyncCollection:
