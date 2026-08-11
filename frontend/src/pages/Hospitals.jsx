@@ -1,10 +1,34 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './Hospitals.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://medipredict-ai-1-zyer.onrender.com'
+const CACHE_KEY = 'hosp_last_results'
+const CACHE_TTL = 10 * 60 * 1000 // 10 minutes
+
+// Pre-warm backend silently when page loads
+function warmupBackend() {
+  fetch(`${API_BASE}/api/health-check`).catch(() => {})
+}
+
+function getCached() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const { data, ts } = JSON.parse(raw)
+    if (Date.now() - ts > CACHE_TTL) return null
+    return data
+  } catch { return null }
+}
+
+function setCache(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }))
+  } catch {}
+}
 
 export default function Hospitals() {
   const [loading, setLoading]       = useState(false)
+  const [status, setStatus]         = useState('')   // step-by-step status text
   const [hospitals, setHospitals]   = useState([])
   const [error, setError]           = useState('')
   const [locationName, setLocation] = useState('')
@@ -12,35 +36,47 @@ export default function Hospitals() {
   const [cityInput, setCityInput]   = useState('')
   const [showManual, setShowManual] = useState(false)
 
+  // On mount: warm up backend + load cached results
+  useEffect(() => {
+    warmupBackend()
+    const cached = getCached()
+    if (cached) {
+      setHospitals(cached.elements || [])
+      setLocation(cached.location || '')
+      setSearched(true)
+    }
+  }, [])
+
   const processResults = (data) => {
     if (data.error) {
       setError(data.error === 'City not found'
-        ? 'City not found. Please try a different name (e.g. "Coimbatore" or "Anna Nagar Chennai").'
-        : 'Hospital data is temporarily unavailable. Please try again in a few seconds.')
+        ? 'City not found. Try a different name e.g. "Coimbatore" or "Anna Nagar Chennai".'
+        : 'Hospital data unavailable. Please try again in a few seconds.')
       return
     }
+    setCache(data)
     setHospitals(data.elements || [])
     setLocation(data.location || '')
     setSearched(true)
-    if (!data.elements || data.elements.length === 0) {
-      setError('No hospitals found in this area. Try a larger city name or nearby area.')
-    }
+    if (!data.elements || data.elements.length === 0)
+      setError('No hospitals found nearby. Try a larger city name.')
   }
 
   const findByGPS = async () => {
-    setLoading(true); setError(''); setHospitals([]); setSearched(false)
+    setLoading(true); setError(''); setHospitals([]); setSearched(false); setShowManual(false)
     try {
       let lat, lon
 
       if (typeof window !== 'undefined' && window.Capacitor) {
-        // Android app — use Capacitor Geolocation (handles permission dialog)
+        setStatus('📍 Requesting location permission...')
         const { Geolocation } = await import('@capacitor/geolocation')
         await Geolocation.requestPermissions()
+        setStatus('📍 Getting your GPS location...')
         const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 })
         lat = pos.coords.latitude
         lon = pos.coords.longitude
       } else {
-        // Browser — use standard Web API
+        setStatus('📍 Getting your location...')
         const pos = await new Promise((res, rej) =>
           navigator.geolocation.getCurrentPosition(res, rej, { timeout: 12000, enableHighAccuracy: true })
         )
@@ -48,21 +84,23 @@ export default function Hospitals() {
         lon = pos.coords.longitude
       }
 
+      setStatus('🔍 Searching hospitals nearby...')
       const res = await fetch(
         `${API_BASE}/api/hospitals?lat=${lat}&lon=${lon}&radius=10000`,
         { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
       )
+      setStatus('📋 Loading results...')
       const data = await res.json()
       processResults(data)
     } catch (err) {
       if (err.code === 1 || err.message?.includes('denied') || err.message?.includes('permission')) {
-        setError('Location permission denied. Please allow location in your phone Settings and try again.')
-        setShowManual(true)
+        setShowManual('denied')
+      } else if (err.code === 2) {
+        setShowManual('unavailable')
       } else {
-        setError('Could not get your location. Please use the city search below.')
-        setShowManual(true)
+        setShowManual('timeout')
       }
-    } finally { setLoading(false) }
+    } finally { setLoading(false); setStatus('') }
   }
 
   const findByCity = async (e) => {
@@ -70,15 +108,17 @@ export default function Hospitals() {
     if (!cityInput.trim()) return
     setLoading(true); setError(''); setHospitals([]); setSearched(false)
     try {
+      setStatus(`🔍 Searching hospitals in ${cityInput}...`)
       const res = await fetch(
         `${API_BASE}/api/hospitals?city=${encodeURIComponent(cityInput.trim())}&radius=10000`,
         { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
       )
+      setStatus('📋 Loading results...')
       const data = await res.json()
       processResults(data)
     } catch {
       setError('Network error. Please check your internet and try again.')
-    } finally { setLoading(false) }
+    } finally { setLoading(false); setStatus('') }
   }
 
   const openMaps = (h) => window.open(`https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lon}`, '_blank')
@@ -107,6 +147,14 @@ export default function Hospitals() {
           </button>
         </div>
 
+        {/* Loading status steps */}
+        {loading && status && (
+          <div className="hosp-status-bar">
+            <span className="spinner-sm"></span>
+            <span>{status}</span>
+          </div>
+        )}
+
         {/* City Name Search */}
         <div className={`hosp-manual-card ${showManual ? 'hosp-manual-highlight' : ''}`}>
           <div className="hosp-manual-title">🔍 Search by City / Area Name</div>
@@ -123,25 +171,39 @@ export default function Hospitals() {
               {loading ? <span className="spinner-sm"></span> : 'Search'}
             </button>
           </form>
-          {showManual && (
-            <div className="hosp-manual-tip">
-              ⚠️ GPS was denied — please type your city or area name above to find hospitals
-            </div>
-          )}
         </div>
+
+        {/* GPS denied — show browser instructions */}
+        {showManual === 'denied' && (
+          <div className="hosp-denied-card">
+            <div className="hosp-denied-title">🔒 Location Access is Blocked</div>
+            <p className="hosp-denied-desc">Your browser/app has blocked location. To fix this:</p>
+            <div className="hosp-denied-steps">
+              <div className="hosp-denied-step">1️⃣ Click the <strong>🔒 lock icon</strong> in your browser address bar</div>
+              <div className="hosp-denied-step">2️⃣ Find <strong>"Location"</strong> and change it to <strong>"Allow"</strong></div>
+              <div className="hosp-denied-step">3️⃣ <strong>Refresh the page</strong> and try again</div>
+            </div>
+            <div className="hosp-denied-alt">Or just <strong>type your city name above</strong> — no GPS needed! 👆</div>
+          </div>
+        )}
+
+        {(showManual === 'unavailable' || showManual === 'timeout') && (
+          <div className="hosp-error">⚠️ Could not detect your location. Please type your city name in the search box above.</div>
+        )}
 
         {error && <div className="hosp-error">⚠️ {error}</div>}
 
         {searched && hospitals.length > 0 && (
           <div className="hosp-location-info">
             📍 Showing <strong>{hospitals.length}</strong> hospitals near <strong>{locationName.split(',').slice(0, 2).join(', ')}</strong>
+            {getCached() && <span className="hosp-cached"> · ⚡ Cached</span>}
           </div>
         )}
 
         {hospitals.length > 0 && (
           <div className="hosp-list">
             {hospitals.map((h, i) => (
-              <div key={h.id} className="hosp-card animate-fade-in-up" style={{ animationDelay: `${i * 0.04}s` }}>
+              <div key={h.id} className="hosp-card animate-fade-in-up" style={{ animationDelay: `${i * 0.03}s` }}>
                 <div className="hosp-card-left">
                   <div className="hosp-type-icon">{typeIcon[h.type] || '🏥'}</div>
                   <div className="hosp-rank">#{i + 1}</div>
