@@ -24,6 +24,9 @@ const TIME_SLOTS = [
 
 const TODAY = new Date().toISOString().split('T')[0]
 
+// Helper so the token key only lives in one place
+const getToken = () => localStorage.getItem('medipredict_token')
+
 function BookingModal({ doctor, onClose, onBooked }) {
   const [date, setDate] = useState('')
   const [slot, setSlot] = useState('')
@@ -38,7 +41,7 @@ function BookingModal({ doctor, onClose, onBooked }) {
     try {
       const res = await fetch(`${API_BASE}/api/appointments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
         body: JSON.stringify({
           doctor_name: doctor.name,
           specialty: doctor.specialty || 'General',
@@ -138,7 +141,7 @@ export default function Appointments() {
     setApptLoading(true)
     try {
       const res = await fetch(`${API_BASE}/api/appointments`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${getToken()}` }
       })
       const data = await res.json()
       setMyAppts(data.appointments || [])
@@ -150,7 +153,7 @@ export default function Appointments() {
     try {
       await fetch(`${API_BASE}/api/appointments/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${getToken()}` }
       })
       await loadMyAppts()
     } catch {} finally { setCancellingId(null) }
@@ -165,7 +168,7 @@ export default function Appointments() {
       if (specialty) params.append('type', specialty)
       setStatus('🔍 Searching doctors nearby...')
       const res = await fetch(`${API_BASE}/api/doctors?${params}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${getToken()}` }
       })
       setStatus('📋 Loading results...')
       const data = await res.json()
