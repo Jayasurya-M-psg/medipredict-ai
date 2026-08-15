@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './Appointments.css'
+import { getSmartLocation } from '../utils/location'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://medipredict-ai-1-zyer.onrender.com'
 
@@ -180,27 +181,20 @@ export default function Appointments() {
   }
 
   const findByGPS = async () => {
-    setStatus('📍 Getting your location...')
-    setLoading(true); setError('')
+    setLoading(true); setError(''); setStatus('📍 Getting your location...')
+    const wakeTimer = setTimeout(() => setStatus('⏳ Server waking up... (may take 30s)'), 6000)
     try {
-      let lat, lon
-      if (window.Capacitor) {
-        const { Geolocation } = await import('@capacitor/geolocation')
-        await Geolocation.requestPermissions()
-        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 })
-        lat = pos.coords.latitude; lon = pos.coords.longitude
+      const loc = await getSmartLocation(setStatus)
+      if (loc.fromIP) setStatus(`🌐 Using approximate location: ${loc.city}`)
+      await searchDoctors({ lat: loc.lat, lon: loc.lon, specialty: selSpecialty?.query })
+    } catch (err) {
+      if (err.message === 'LOCATION_FAILED') {
+        setError('Could not get your location. Please type your city name below.')
       } else {
-        // Try low-accuracy first (fast), then high-accuracy fallback
-        const pos = await new Promise((res, rej) => {
-          navigator.geolocation.getCurrentPosition(res,
-            () => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 15000, enableHighAccuracy: true }),
-            { timeout: 8000, enableHighAccuracy: false }
-          )
-        })
-        lat = pos.coords.latitude; lon = pos.coords.longitude
+        setError('Location error. Please type your city name below.')
       }
-      await searchDoctors({ lat, lon, specialty: selSpecialty?.query })
-    } catch { setError('Location denied. Use city search below.'); setLoading(false); setStatus('') }
+      setLoading(false)
+    } finally { clearTimeout(wakeTimer); setStatus('') }
   }
 
   const findByCity = async (e) => {
