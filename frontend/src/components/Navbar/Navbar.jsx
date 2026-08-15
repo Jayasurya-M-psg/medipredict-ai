@@ -71,6 +71,16 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
+        {user && (
+          <div className="mobile-user-header">
+            <div className="mobile-user-avatar">{user.full_name?.[0]?.toUpperCase() || '?'}</div>
+            <div>
+              <div className="mobile-user-name">{user.full_name}</div>
+              <div className="mobile-user-email">{user.email}</div>
+            </div>
+            <button className="mobile-logout-top" onClick={handleLogout}>🚪 Logout</button>
+          </div>
+        )}
         <Link to="/" className="mobile-link">🏠 Home</Link>
         {user && <>
           <Link to="/predict"      className="mobile-link">🔬 Predict</Link>
