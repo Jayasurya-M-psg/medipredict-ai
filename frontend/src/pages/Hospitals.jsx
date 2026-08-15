@@ -7,7 +7,7 @@ const CACHE_TTL = 10 * 60 * 1000 // 10 minutes
 
 // Pre-warm backend silently when page loads
 function warmupBackend() {
-  fetch(`${API_BASE}/api/health-check`).catch(() => {})
+  fetch(`${API_BASE}/`).catch(() => {})
 }
 
 function getCached() {
@@ -62,55 +62,80 @@ export default function Hospitals() {
       setError('No hospitals found nearby. Try a larger city name.')
   }
 
+  const getLocation = async () => {
+    // 1. Try Capacitor GPS (Android app)
+    if (typeof window !== 'undefined' && window.Capacitor) {
+      setStatus('📍 Requesting location permission...')
+      const { Geolocation } = await import('@capacitor/geolocation')
+      await Geolocation.requestPermissions()
+      setStatus('📍 Getting your GPS location...')
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 })
+      return { lat: pos.coords.latitude, lon: pos.coords.longitude }
+    }
+    // 2. Try browser geolocation (low-accuracy first = fast)
+    try {
+      setStatus('📍 Getting your location...')
+      const pos = await new Promise((res, rej) => {
+        navigator.geolocation.getCurrentPosition(res,
+          () => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 12000, enableHighAccuracy: true }),
+          { timeout: 6000, enableHighAccuracy: false }
+        )
+      })
+      return { lat: pos.coords.latitude, lon: pos.coords.longitude }
+    } catch {}
+    // 3. Fallback: IP-based location (always works, city-level accuracy)
+    setStatus('🌐 Using network location (GPS unavailable)...')
+    const ipRes = await fetch('https://ipapi.co/json/')
+    const ipData = await ipRes.json()
+    if (ipData.latitude) {
+      return { lat: ipData.latitude, lon: ipData.longitude, fromIP: true, city: ipData.city }
+    }
+    throw new Error('Could not determine location')
+  }
+
   const findByGPS = async () => {
     setLoading(true); setError(''); setHospitals([]); setSearched(false); setShowManual(false)
+    // Show wake-up warning after 6 seconds
+    const wakeTimer = setTimeout(() => setStatus('⏳ Server is waking up... (may take 30s on first use)'), 6000)
     try {
-      let lat, lon
+      const loc = await getLocation()
+      if (loc.fromIP) setStatus(`📍 Using approximate location: ${loc.city}`)
+      else setStatus('🔍 Searching hospitals nearby...')
 
-      if (typeof window !== 'undefined' && window.Capacitor) {
-        setStatus('📍 Requesting location permission...')
-        const { Geolocation } = await import('@capacitor/geolocation')
-        await Geolocation.requestPermissions()
-        setStatus('📍 Getting your GPS location...')
-        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 })
-        lat = pos.coords.latitude
-        lon = pos.coords.longitude
-      } else {
-        setStatus('📍 Getting your location...')
-        // Browser: try low-accuracy first (fast), fallback to high-accuracy
-        const pos = await new Promise((res, rej) => {
-          navigator.geolocation.getCurrentPosition(res,
-            () => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 15000, enableHighAccuracy: true }),
-            { timeout: 8000, enableHighAccuracy: false }
-          )
-        })
-        lat = pos.coords.latitude
-        lon = pos.coords.longitude
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 60000)
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/hospitals?lat=${loc.lat}&lon=${loc.lon}&radius=10000`,
+          { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }, signal: controller.signal }
+        )
+        clearTimeout(timeout)
+        setStatus('📋 Loading results...')
+        const data = await res.json()
+        processResults(data)
+      } catch (fetchErr) {
+        clearTimeout(timeout)
+        if (fetchErr.name === 'AbortError') setError('Request timed out. Server may be sleeping. Please try again in 30 seconds.')
+        else throw fetchErr
       }
 
-      setStatus('🔍 Searching hospitals nearby...')
-      const res = await fetch(
-        `${API_BASE}/api/hospitals?lat=${lat}&lon=${lon}&radius=10000`,
-        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
-      )
-      setStatus('📋 Loading results...')
-      const data = await res.json()
-      processResults(data)
     } catch (err) {
-      if (err.code === 1 || err.message?.includes('denied') || err.message?.includes('permission')) {
+      clearTimeout(wakeTimer)
+      if (err.message === 'Could not determine location') {
+        setError('Could not get your location. Please type your city name below.')
+      } else if (err.code === 1 || err.message?.includes('denied')) {
         setShowManual('denied')
-      } else if (err.code === 2) {
-        setShowManual('unavailable')
       } else {
         setShowManual('timeout')
       }
-    } finally { setLoading(false); setStatus('') }
+    } finally { clearTimeout(wakeTimer); setLoading(false); setStatus('') }
   }
 
   const findByCity = async (e) => {
     e.preventDefault()
     if (!cityInput.trim()) return
     setLoading(true); setError(''); setHospitals([]); setSearched(false)
+    const wakeTimer = setTimeout(() => setStatus('⏳ Server waking up... (may take 30s on first use)'), 6000)
     try {
       setStatus(`🔍 Searching hospitals in ${cityInput}...`)
       const res = await fetch(
@@ -122,7 +147,7 @@ export default function Hospitals() {
       processResults(data)
     } catch {
       setError('Network error. Please check your internet and try again.')
-    } finally { setLoading(false); setStatus('') }
+    } finally { clearTimeout(wakeTimer); setLoading(false); setStatus('') }
   }
 
   const openMaps = (h) => window.open(`https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lon}`, '_blank')
